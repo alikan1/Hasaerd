@@ -1,0 +1,280 @@
+-- MirandaHub_SAFE.lua
+-- Eğitim amaçlı, güvenli versiyon.
+-- Bu script LocalPlayer'ın PlayerGui'sine bir GUI ekler ve buton etkileşimlerini
+-- simüle eder. Hiçbir uzak kod indirme veya hile mantığı içermez.
+
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
+
+-- Helper: kolay UI oluşturma
+local function new(instanceType, props)
+    local obj = Instance.new(instanceType)
+    if props then
+        for k, v in pairs(props) do
+            if k ~= "Parent" then
+                obj[k] = v
+            end
+        end
+        if props.Parent then
+            obj.Parent = props.Parent
+        end
+    end
+    return obj
+end
+
+-- Root ScreenGui
+local screenGui = new("ScreenGui", {
+    ResetOnSpawn = false,
+    Name = "MirandaTweenPlus_SAFE",
+    Parent = PlayerGui
+})
+
+-- Ana VIP menu
+local vipFrame = new("Frame", {
+    Size = UDim2.new(0,180,0,225),
+    Position = UDim2.new(0.5, -90, 0.5, -112),
+    BackgroundColor3 = Color3.fromRGB(20,20,20),
+    BackgroundTransparency = 0.15,
+    BorderSizePixel = 0,
+    Name = "VIPMenu",
+    Parent = screenGui,
+    Visible = true
+})
+new("UICorner", {Parent = vipFrame, CornerRadius = UDim.new(0,14)})
+new("UIStroke", {Parent = vipFrame, Thickness = 3, Transparency = 0.15})
+
+-- Başlık
+new("TextLabel", {
+    Size = UDim2.new(1,0,0,22),
+    Text = "MIRANDA TWEEN+ (SAFE)",
+    TextColor3 = Color3.fromRGB(255,0,60),
+    Font = Enum.Font.Arcade,
+    TextSize = 15,
+    BackgroundTransparency = 1,
+    Position = UDim2.new(0,0,0,0),
+    Parent = vipFrame
+})
+
+-- Mesaj alanı (durum)
+local statusLabel = new("TextLabel", {
+    Size = UDim2.new(1,-20,0,14),
+    Position = UDim2.new(0,10,0,22),
+    BackgroundTransparency = 1,
+    Text = "Eğitim modu: zararlı özellikler devre dışı.",
+    TextColor3 = Color3.fromRGB(255,255,255),
+    Font = Enum.Font.Arcade,
+    TextSize = 12,
+    TextXAlignment = Enum.TextXAlignment.Center,
+    Parent = vipFrame
+})
+
+local function setStatus(text, color)
+    statusLabel.Text = text or ""
+    if color then
+        statusLabel.TextColor3 = color
+    end
+end
+
+-- Buton oluşturma yardımcıları
+local function createButton(parent, props, callback)
+    local btn = new("TextButton", {
+        Parent = parent,
+        Size = props.Size or UDim2.new(0.9,0,0,28),
+        Position = props.Position or UDim2.new(0.05,0,0,0),
+        BackgroundColor3 = props.Color or Color3.fromRGB(200,0,60),
+        Text = props.Text or "Button",
+        Font = Enum.Font.Arcade,
+        TextColor3 = props.TextColor or Color3.fromRGB(255,255,255),
+        TextSize = props.TextSize or 14,
+        BorderSizePixel = 0
+    })
+    new("UICorner", {Parent = btn, CornerRadius = UDim.new(0,8)})
+    if callback then
+        btn.MouseButton1Click:Connect(function()
+            callback(btn)
+        end)
+    end
+    return btn
+end
+
+-- Durum bayrakları (hepsi sadece yerel değişkenler; hiçbir ağ çağrısı yok)
+local flags = {
+    espGod = false,
+    espSecret = false,
+    espBase = false,
+    espPlayer = false,
+    instantSteal = false,
+    aimbotUsed = false,
+    autoKick = false
+}
+
+-- Butonlar (yerleşim, metin ve callback)
+local btnESPGod = createButton(vipFrame, {
+    Size = UDim2.new(0.455, -2, 0, 22),
+    Position = UDim2.new(0.04, 0, 0, 38),
+    Text = "ESP GOD",
+    Color = Color3.fromRGB(200,0,60)
+}, function(self)
+    flags.espGod = not flags.espGod
+    if flags.espGod then
+        self.BackgroundColor3 = Color3.fromRGB(250,80,80)
+        setStatus("ESP GOD etkin (simülasyon).", Color3.fromRGB(200,0,60))
+    else
+        self.BackgroundColor3 = Color3.fromRGB(200,0,60)
+        setStatus("ESP GOD kapatıldı.", Color3.fromRGB(255,255,255))
+    end
+end)
+
+local btnESPSecret = createButton(vipFrame, {
+    Size = UDim2.new(0.455, -2, 0, 22),
+    Position = UDim2.new(0.535, 2, 0, 38),
+    Text = "ESP SECRET",
+    Color = Color3.fromRGB(0,0,0),
+    TextColor = Color3.fromRGB(255,255,255)
+}, function(self)
+    flags.espSecret = not flags.espSecret
+    if flags.espSecret then
+        self.BackgroundColor3 = Color3.fromRGB(250,60,60)
+        setStatus("ESP SECRET etkin (simülasyon).", Color3.fromRGB(255,0,60))
+    else
+        self.BackgroundColor3 = Color3.fromRGB(0,0,0)
+        setStatus("ESP SECRET kapatıldı.", Color3.fromRGB(255,255,255))
+    end
+end)
+
+local btnESPBase = createButton(vipFrame, {
+    Size = UDim2.new(0.9,0,0,30),
+    Position = UDim2.new(0.05,0,0,66),
+    Text = "ESP BASE",
+    Color = Color3.fromRGB(220,0,60),
+    TextSize = 15
+}, function(self)
+    flags.espBase = not flags.espBase
+    if flags.espBase then
+        self.BackgroundColor3 = Color3.fromRGB(250,0,60)
+        setStatus("ESP BASE etkin (simülasyon).", Color3.fromRGB(220,0,60))
+    else
+        self.BackgroundColor3 = Color3.fromRGB(220,0,60)
+        setStatus("ESP BASE kapatıldı.", Color3.fromRGB(255,255,255))
+    end
+end)
+
+local btnESPPlayer = createButton(vipFrame, {
+    Size = UDim2.new(0.9,0,0,28),
+    Position = UDim2.new(0.05,0,0,102),
+    Text = "ESP PLAYER",
+    Color = Color3.fromRGB(80,0,0),
+    TextSize = 15
+}, function(self)
+    flags.espPlayer = not flags.espPlayer
+    if flags.espPlayer then
+        self.BackgroundColor3 = Color3.fromRGB(255,40,40)
+        setStatus("ESP PLAYER etkin (simülasyon).", Color3.fromRGB(255,40,40))
+    else
+        self.BackgroundColor3 = Color3.fromRGB(80,0,0)
+        setStatus("ESP PLAYER kapatıldı.", Color3.fromRGB(255,255,255))
+    end
+end)
+
+-- Instant Steal panel (güvenli / simülasyon)
+local btnInstant = createButton(vipFrame, {
+    Size = UDim2.new(0.9,0,0,30),
+    Position = UDim2.new(0.05,0,0,140),
+    Text = "Miranda Insta Steal (Simülasyon)",
+    Color = Color3.fromRGB(250,80,80),
+    TextSize = 15
+}, function(self)
+    flags.instantSteal = not flags.instantSteal
+    if flags.instantSteal then
+        self.Text = "Instant Steal: ON (simülasyon)"
+        self.BackgroundColor3 = Color3.fromRGB(60,255,60)
+        setStatus("Instant Steal bekleniyor (sadece simülasyon).", Color3.fromRGB(60,255,60))
+    else
+        self.Text = "Instant Steal: OFF"
+        self.BackgroundColor3 = Color3.fromRGB(250,80,80)
+        setStatus("Instant Steal kapatıldı.", Color3.fromRGB(255,255,255))
+    end
+end)
+
+-- Aimbot Teia yerine güvenli 'kullan' simülasyonu
+local function safeUseWebSlinger()
+    -- Bu fonksiyon gerçek exploit/aimbot yapmaz.
+    -- Sadece eğitim amacıyla kullanıldığını gösterir.
+    setStatus("Aimbot Teia kullanıldı (simülasyon). Gerçek aimbot uygulanmadı.", Color3.fromRGB(255,255,255))
+end
+
+-- Küçük ayrı panel oluşturmak yerine vipFrame'e buton ekleyelim
+local btnAimbot = createButton(vipFrame, {
+    Size = UDim2.new(0.88,0,0,30),
+    Position = UDim2.new(0.06,0,0,180),
+    Text = "Aimbot Teia (Simülasyon)",
+    Color = Color3.fromRGB(255,255,255),
+    TextSize = 15,
+    TextColor = Color3.fromRGB(0,0,0)
+}, function(self)
+    flags.aimbotUsed = true
+    safeUseWebSlinger()
+    -- Buton rengini kısa süre değiştirip geri alabiliriz
+    local old = self.BackgroundColor3
+    self.BackgroundColor3 = Color3.fromRGB(200,200,200)
+    task.delay(0.6, function()
+        if self and self.Parent then
+            self.BackgroundColor3 = old
+        end
+    end)
+end)
+
+-- AUTO KICK -> simülasyon (etik olmayan eylemler yapılmaz)
+local autoKickLabel = new("TextLabel", {
+    Size = UDim2.new(0.32,-5,0,28),
+    Position = UDim2.new(0.62,0,0,102),
+    BackgroundColor3 = Color3.fromRGB(0,0,0),
+    Text = "OFF",
+    Font = Enum.Font.Arcade,
+    TextColor3 = Color3.fromRGB(255,255,255),
+    TextSize = 13,
+    BorderSizePixel = 0,
+    Parent = vipFrame
+})
+new("UICorner", {Parent = autoKickLabel, CornerRadius = UDim.new(0,8)})
+
+local btnAutoKick = createButton(vipFrame, {
+    Size = UDim2.new(0.58,-5,0,28),
+    Position = UDim2.new(0.06,0,0,102),
+    Text = "AUTO KICK (Simülasyon)",
+    Color = Color3.fromRGB(200,0,60),
+    TextSize = 15
+}, function(self)
+    flags.autoKick = not flags.autoKick
+    if flags.autoKick then
+        autoKickLabel.BackgroundColor3 = Color3.fromRGB(60,200,60)
+        autoKickLabel.Text = "ON"
+        setStatus("AUTO KICK etkin (simülasyon). Gerçek oyuncu aksiyonları yapılmaz.", Color3.fromRGB(60,200,60))
+    else
+        autoKickLabel.BackgroundColor3 = Color3.fromRGB(0,0,0)
+        autoKickLabel.Text = "OFF"
+        setStatus("AUTO KICK kapatıldı.", Color3.fromRGB(255,255,255))
+    end
+end)
+
+-- Basit açık / gizle düğmesi (oyuncunun GUI'sini kapatıp açar)
+local openBtn = new("ImageButton", {
+    Size = UDim2.new(0,50,0,50),
+    Position = UDim2.new(0,20,0.5,-20),
+    Image = "", -- isteğe göre buraya bir asset id koyabilirsin
+    BackgroundTransparency = 1,
+    Name = "OpenButton",
+    Parent = screenGui
+})
+new("UICorner", {Parent = openBtn, CornerRadius = UDim.new(1,0)})
+new("UIStroke", {Parent = openBtn, Thickness = 2, Transparency = 0.15})
+
+openBtn.MouseButton1Click:Connect(function()
+    vipFrame.Visible = not vipFrame.Visible
+end)
+
+-- Son olarak: güvenlik notu (oyuncu GUI'sinde sabit gösterilebilir)
+setStatus("SAFE eğitim modu aktif. Zararlı kodlar kaldırıldı.", Color3.fromRGB(255,255,255))
+
+-- Script sonu (burada loadstring veya HttpGet yok)
